@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Preços Shopee e Mercado Livre</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Precificador Shopee e Mercado Livre</h1>
+        <p class="text-center text-gray-600 mb-6">Desenvolvido por: <span id="userName" class="font-semibold text-blue-600">@joao.felipecorrea</span></p>
+
+        <!-- Common Inputs -->
+        <div class="mb-8 p-4 border rounded-lg bg-gray-50">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Dados Comuns do Item</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="cost" class="block text-gray-700 text-sm font-semibold mb-2">Custo do Item (R$):</label>
+                    <input type="number" id="cost" placeholder="Ex: 50.00"
+                           class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                           step="0.01" min="0" value="0">
+                </div>
+
+                <div>
+                    <label for="taxOnSale" class="block text-gray-700 text-sm font-semibold mb-2">Imposto sobre a Venda (%):</label>
+                    <input type="number" id="taxOnSale" placeholder="Ex: 5"
+                           class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                           step="0.01" min="0" value="0">
+                </div>
+
+                <div>
+                    <label for="profitMargin" class="block text-gray-700 text-sm font-semibold mb-2">Margem de Lucro Desejada (% sobre o Preço de Venda):</label>
+                    <input type="number" id="profitMargin" placeholder="Ex: 30"
+                           class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200"
+                           step="0.01" min="0" value="0">
+                </div>
+            </div>
+        </div>
+
+        <!-- Marketplace Specific Inputs -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Shopee Data (no specific inputs beyond common ones) -->
+            <div class="p-4 border rounded-lg bg-blue-50">
+                <h2 class="text-xl font-semibold text-blue-800 mb-4">Dados Shopee</h2>
+                <p class="text-gray-700 text-sm">Comissão Shopee: 20%</p>
+                <p class="text-gray-700 text-sm">Taxa Fixa por Pedido: R$4.00</p>
+            </div>
+
+            <!-- Mercado Livre Specific Inputs -->
+            <div class="p-4 border rounded-lg bg-green-50">
+                <h2 class="text-xl font-semibold text-green-800 mb-4">Dados Mercado Livre</h2>
+                <div class="mb-4">
+                    <label for="mlCategoryCommission" class="block text-gray-700 text-sm font-semibold mb-2">Porcentagem da Categoria ML (%):</label>
+                    <input type="number" id="mlCategoryCommission" placeholder="Ex: 11"
+                           class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                           step="0.01" min="0" value="11">
+                </div>
+                <div>
+                    <label for="mlFixedFee" class="block text-gray-700 text-sm font-semibold mb-2">Taxa Fixa ML (R$):</label>
+                    <input type="number" id="mlFixedFee" placeholder="Ex: 5.50"
+                           class="shadow-sm appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                           step="0.01" min="0" value="5.50">
+                </div>
+            </div>
+        </div>
+
+        <button id="calculateBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-200 ease-in-out transform hover:scale-105 mb-6">
+            Calcular Preços
+        </button>
+
+        <div id="results" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+            <!-- Shopee Results -->
+            <div class="p-6 bg-blue-50 rounded-lg border border-blue-200">
+                <h2 class="text-xl font-semibold text-blue-800 mb-4">Resultados Shopee:</h2>
+                <p class="text-gray-700 mb-2"><span class="font-medium">Preço de Venda Sugerido:</span> <span id="shopeeSellingPrice" class="font-bold text-blue-700">R$ 0.00</span></p>
+                <p class="text-gray-700 mb-2"><span class="font-medium">Comissão Shopee (20%):</span> <span id="shopeeCommission" class="font-bold text-red-600">R$ 0.00</span></p>
+                <p class="text-gray-700 mb-2"><span class="font-medium">Imposto sobre a Venda:</span> <span id="shopeeTaxAmount" class="font-bold text-red-600">R$ 0.00</span></p>
+                <p class="text-gray-700 mb-2"><span class="font-medium">Taxa por Pedido (R$4.00):</span> <span id="shopeeFixedFee" class="font-bold text-red-600">R$ 4.00</span></p>
+                <p class="text-gray-700 mb-2"><span class="font-medium">Custo Base do Item:</span> <span id="shopeeBaseCost" class="font-bold text-gray-800">R$ 0.00</span></p>
+                <p class="text-gray-700"><span class="font-medium">Lucro Líquido Estimado:</span> <span id="shopeeNetProfit" class="font-bold text-green-600">R$ 0.00</span></p>
+            </div>
+
+            <!-- Mercado Livre Results -->
+            <div class="p-6 bg-green-50 rounded-lg border border-green-200">
+                <h2 class="text-xl font-semibold text-green-800 mb-4">Resultados Mercado Livre:</h2>
+                <p class="text-gray-700 mb-2"><span class="font-medium">Preço de Venda Sugerido:</span> <span id="mlSellingPrice" class="font-bold text-green-700">R$ 0.00</span></p>
+                <p class="text-gray-700 mb-2"><span class="font-medium">Comissão ML:</span> <span id="mlCommission" class="font-bold text-red-600">R$ 0.00</span></p>
+                <p class="text-gray-700 mb-2"><span class="font-medium">Imposto sobre a Venda:</span> <span id="mlTaxAmount" class="font-bold text-red-600">R$ 0.00</span></p>
+                <p class="text-gray-700 mb-2"><span class="font-medium">Taxa Fixa ML:</span> <span id="mlFixedFeeDisplay" class="font-bold text-red-600">R$ 0.00</span></p>
+                <p class="text-gray-700 mb-2"><span class="font-medium">Custo Base do Item:</span> <span id="mlBaseCost" class="font-bold text-gray-800">R$ 0.00</span></p>
+                <p class="text-gray-700"><span class="font-medium">Lucro Líquido Estimado:</span> <span id="mlNetProfit" class="font-bold text-green-600">R$ 0.00</span></p>
+            </div>
+        </div>
+
+        <div id="errorMessage" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg hidden" role="alert">
+            Por favor, insira valores válidos para todos os campos. A soma da margem de lucro, comissões e imposto não pode ser 100% ou mais.
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Input elements
+            const costInput = document.getElementById('cost');
+            const taxOnSaleInput = document.getElementById('taxOnSale');
+            const profitMarginInput = document.getElementById('profitMargin');
+            const mlCategoryCommissionInput = document.getElementById('mlCategoryCommission');
+            const mlFixedFeeInput = document.getElementById('mlFixedFee');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const userNameSpan = document.getElementById('userName');
+
+            // Result display elements for Shopee
+            const shopeeSellingPriceSpan = document.getElementById('shopeeSellingPrice');
+            const shopeeCommissionSpan = document.getElementById('shopeeCommission');
+            const shopeeTaxAmountSpan = document.getElementById('shopeeTaxAmount');
+            const shopeeFixedFeeSpan = document.getElementById('shopeeFixedFee');
+            const shopeeBaseCostSpan = document.getElementById('shopeeBaseCost');
+            const shopeeNetProfitSpan = document.getElementById('shopeeNetProfit');
+
+            // Result display elements for Mercado Livre
+            const mlSellingPriceSpan = document.getElementById('mlSellingPrice');
+            const mlCommissionSpan = document.getElementById('mlCommission');
+            const mlTaxAmountSpan = document.getElementById('mlTaxAmount');
+            const mlFixedFeeDisplaySpan = document.getElementById('mlFixedFeeDisplay');
+            const mlBaseCostSpan = document.getElementById('mlBaseCost');
+            const mlNetProfitSpan = document.getElementById('mlNetProfit');
+
+            // General display elements
+            const resultsDiv = document.getElementById('results');
+            const errorMessageDiv = document.getElementById('errorMessage');
+
+            // Constants for Shopee
+            const SHOPEE_COMMISSION_RATE = 0.20; // 20%
+            const SHOPEE_FIXED_FEE = 4.00; // R$4.00 por pedido
+
+            // You can change your name here!
+            userNameSpan.textContent = "@joao.felipecorrea"; // Updated with Instagram handle
+
+            calculateBtn.addEventListener('click', calculatePrices);
+
+            function calculatePrices() {
+                const cost = parseFloat(costInput.value);
+                const taxOnSale = parseFloat(taxOnSaleInput.value) / 100; // Tax now applied on sale price
+                const profitMargin = parseFloat(profitMarginInput.value) / 100; // Convert to decimal
+                const mlCategoryCommission = parseFloat(mlCategoryCommissionInput.value) / 100; // Convert to decimal
+                const mlFixedFee = parseFloat(mlFixedFeeInput.value);
+
+                // Validate inputs
+                if (isNaN(cost) || cost < 0 || isNaN(taxOnSale) || taxOnSale < 0 ||
+                    isNaN(profitMargin) || profitMargin < 0 || isNaN(mlCategoryCommission) || mlCategoryCommission < 0 ||
+                    isNaN(mlFixedFee) || mlFixedFee < 0) {
+                    errorMessageDiv.textContent = "Por favor, insira valores válidos para todos os campos.";
+                    errorMessageDiv.classList.remove('hidden');
+                    resultsDiv.classList.add('hidden');
+                    return;
+                }
+
+                // --- Shopee Calculation ---
+                // Formula: S = (C + F) / (1 - P - M - T)
+                // S = Selling Price
+                // C = Base Cost
+                // F = Fixed Fee (Shopee)
+                // P = Commission Rate (Shopee)
+                // M = Desired Profit Margin (on Selling Price)
+                // T = Tax Rate (on Selling Price)
+
+                const shopeeDenominator = (1 - SHOPEE_COMMISSION_RATE - profitMargin - taxOnSale);
+
+                if (shopeeDenominator <= 0) {
+                    errorMessageDiv.textContent = "Erro de cálculo Shopee: A soma da margem de lucro, comissão e imposto é 100% ou mais. Ajuste os valores.";
+                    errorMessageDiv.classList.remove('hidden');
+                    resultsDiv.classList.add('hidden');
+                    return;
+                }
+
+                const shopeeSellingPrice = (cost + SHOPEE_FIXED_FEE) / shopeeDenominator;
+                const shopeeCommission = shopeeSellingPrice * SHOPEE_COMMISSION_RATE;
+                const shopeeTaxAmount = shopeeSellingPrice * taxOnSale;
+                const shopeeNetProfit = shopeeSellingPrice - cost - shopeeCommission - shopeeTaxAmount - SHOPEE_FIXED_FEE;
+
+                // Display Shopee results
+                shopeeSellingPriceSpan.textContent = `R$ ${shopeeSellingPrice.toFixed(2)}`;
+                shopeeCommissionSpan.textContent = `R$ ${shopeeCommission.toFixed(2)}`;
+                shopeeTaxAmountSpan.textContent = `R$ ${shopeeTaxAmount.toFixed(2)}`;
+                shopeeFixedFeeSpan.textContent = `R$ ${SHOPEE_FIXED_FEE.toFixed(2)}`;
+                shopeeBaseCostSpan.textContent = `R$ ${cost.toFixed(2)}`; // Display base cost
+                shopeeNetProfitSpan.textContent = `R$ ${shopeeNetProfit.toFixed(2)}`;
+
+                // --- Mercado Livre Calculation ---
+                const mlDenominator = (1 - mlCategoryCommission - profitMargin - taxOnSale);
+
+                if (mlDenominator <= 0) {
+                    errorMessageDiv.textContent = "Erro de cálculo Mercado Livre: A soma da margem de lucro, comissão e imposto é 100% ou mais. Ajuste os valores.";
+                    errorMessageDiv.classList.remove('hidden');
+                    resultsDiv.classList.add('hidden');
+                    return;
+                }
+
+                const mlSellingPrice = (cost + mlFixedFee) / mlDenominator;
+                const mlCommission = mlSellingPrice * mlCategoryCommission;
+                const mlTaxAmount = mlSellingPrice * taxOnSale;
+                const mlNetProfit = mlSellingPrice - cost - mlCommission - mlTaxAmount - mlFixedFee;
+
+                // Display Mercado Livre results
+                mlSellingPriceSpan.textContent = `R$ ${mlSellingPrice.toFixed(2)}`;
+                mlCommissionSpan.textContent = `R$ ${mlCommission.toFixed(2)}`;
+                mlTaxAmountSpan.textContent = `R$ ${mlTaxAmount.toFixed(2)}`;
+                mlFixedFeeDisplaySpan.textContent = `R$ ${mlFixedFee.toFixed(2)}`;
+                mlBaseCostSpan.textContent = `R$ ${cost.toFixed(2)}`; // Display base cost
+                mlNetProfitSpan.textContent = `R$ ${mlNetProfit.toFixed(2)}`;
+
+                resultsDiv.classList.remove('hidden');
+                errorMessageDiv.classList.add('hidden'); // Hide error if calculations are successful
+            }
+        });
+    </script>
+</body>
+</html>
